@@ -115,16 +115,24 @@ en = rep(en, """<div class="project-card featured fade-in">
                 </div>
 
                 <div class="project-card fade-in">
-                    <span class="project-status wip">⚡ IN DEVELOPMENT</span>
-                    <h3 class="project-title">🧠 MindData</h3>
+                    <span class="project-status live">✓ MY COMPANY · LIVE</span>
+                    <h3 class="project-title">🧠 MindData — for Psychology Practices</h3>
                     <p class="project-desc">
-                        The second product of Kowalewska Software, built on the same secure serverless foundation.
+                        Secure web app for psychologists and psychotherapists: session notes that become immutable
+                        once signed, digital GDPR consents with full history, appointment calendar (in person and online)
+                        and an AI assistant that turns rough notes into a structured summary. AES-256 encryption, MFA,
+                        audit log, data stored in the EU (Frankfurt).
                     </p>
                     <div class="project-tech">
                         <span>AWS Serverless</span>
-                        <span>Cognito</span>
+                        <span>Cognito MFA</span>
+                        <span>KMS</span>
+                        <span>Bedrock</span>
                         <span>React</span>
                         <span>Terraform</span>
+                    </div>
+                    <div class="project-links">
+                        <a href="https://www.minddata.pl" target="_blank" rel="noopener" class="project-link primary">→ minddata.pl</a>
                     </div>
                 </div>
 
@@ -174,7 +182,7 @@ def head(lang, tytul, opis, sciezka, inny):
 (W / "en").mkdir(exist_ok=True)
 (W / "en" / "index.html").write_text(
     head("en", "Jola Kowalewska — Founder of Kowalewska Software · AWS Cloud Engineer",
-         "I build IntegraHolistic, software for holistic cosmetology and trichology clinics, on AWS. 14 years in private cloud, AWS Solutions Architect Associate.",
+         "I build IntegraHolistic (holistic cosmetology and trichology clinics) and MindData (psychology practices) on AWS. 14 years in private cloud, AWS Solutions Architect Associate.",
          "/en/", "pl") + en, encoding="utf-8", newline="\n")
 
 # ---------- PL: tłumaczenie wersji EN ----------
@@ -259,9 +267,16 @@ PARY = [
                         Dane o zdrowiu (RODO art. 9): osobne konto produkcyjne w organizacji AWS z politykami SCP,
                         Identity Center z MFA, szyfrowanie KMS, WAF, dane wyłącznie w UE i codzienny raport bezpieczeństwa."""),
     ('class="project-link">→ 100-second film</a>', 'class="project-link">→ film (100 s)</a>'),
-    ('<span class="project-status wip">⚡ IN DEVELOPMENT</span>', '<span class="project-status wip">⚡ W BUDOWIE</span>'),
-    ("""The second product of Kowalewska Software, built on the same secure serverless foundation.""",
-     """Drugi produkt Kowalewska Software, budowany na tym samym bezpiecznym fundamencie serverless."""),
+    ('<span class="project-status live">✓ MY COMPANY · LIVE</span>', '<span class="project-status live">✓ MOJA FIRMA · DZIAŁA</span>'),
+    ('<h3 class="project-title">🧠 MindData — for Psychology Practices</h3>', '<h3 class="project-title">🧠 MindData — aplikacja dla gabinetów psychologicznych</h3>'),
+    ("""Secure web app for psychologists and psychotherapists: session notes that become immutable
+                        once signed, digital GDPR consents with full history, appointment calendar (in person and online)
+                        and an AI assistant that turns rough notes into a structured summary. AES-256 encryption, MFA,
+                        audit log, data stored in the EU (Frankfurt).""",
+     """Bezpieczna aplikacja dla psychologów i psychoterapeutów: notatki z sesji, które po podpisaniu stają się
+                        niezmienne, cyfrowe zgody RODO z pełną historią, kalendarz wizyt (stacjonarnych i online)
+                        oraz asystent AI, który porządkuje notatki z brudnopisu. Szyfrowanie AES-256, MFA, dziennik
+                        audytowy, dane w UE (Frankfurt)."""),
     ('<span class="project-status live">✓ LIVE</span>', '<span class="project-status live">✓ DZIAŁA</span>'),
     ('<h3 class="project-title">🌱 Plant Inventory App — Serverless on AWS</h3>', '<h3 class="project-title">🌱 Plant Inventory App — serverless na AWS</h3>'),
     ("""Production-grade serverless application for managing garden care plans.
@@ -320,7 +335,7 @@ for a, b in PARY:
     pl = rep(pl, a, b, ile=len(re.findall(rx(a), pl)) or 1)
 (W / "index.html").write_text(
     head("pl", "Jola Kowalewska — założycielka Kowalewska Software · AWS Cloud Engineer",
-         "Tworzę IntegraHolistic — aplikację dla gabinetów kosmetologii i trychologii holistycznej — na AWS. 14 lat w chmurze prywatnej, AWS Solutions Architect Associate.",
+         "Tworzę na AWS IntegraHolistic (gabinety kosmetologii i trychologii holistycznej) i MindData (gabinety psychologiczne). 14 lat w chmurze prywatnej, AWS Solutions Architect Associate.",
          "/", "en") + pl, encoding="utf-8", newline="\n")
 
 zostalo = [x for x in ("Journey", "Skills", "Projects", "Get In Touch", "Open to", "LIVE", "PASSED", "Hands-on")
