@@ -17,7 +17,7 @@ variable "certyfikat_gotowy" {
     NS w OVH przełączamy dopiero po etapie 2, więc strona działa od pierwszej sekundy.
   EOT
   type        = bool
-  default     = false
+  default     = true
 }
 
 variable "email_alertow" {
