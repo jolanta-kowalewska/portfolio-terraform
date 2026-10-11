@@ -1,0 +1,912 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jola Kowalewska — Cloud Engineer</title>
+
+    <!-- ===== FONTY ===== -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,700;1,300&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --sky-deep:    #0a1628;
+            --sky-mid:     #0f2447;
+            --sky-light:   #1a3a6b;
+            --cloud-white: #f0f6ff;
+            --cloud-mist:  #8badd4;
+            --aws-orange:  #ff9900;
+            --aws-glow:    rgba(255,153,0,0.15);
+            --vmware-teal: #5ba4cf;
+            --success:     #4caf93;
+
+            --font-display: 'Space Mono', monospace;
+            --font-body:    'DM Sans', sans-serif;
+
+            --radius: 12px;
+            --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html { scroll-behavior: smooth; }
+        body {
+            font-family: var(--font-body);
+            background: var(--sky-deep);
+            color: var(--cloud-white);
+            line-height: 1.7;
+            overflow-x: hidden;
+        }
+
+        .bg-stars {
+            position: fixed; inset: 0; pointer-events: none; z-index: 0;
+            background:
+                radial-gradient(ellipse at 20% 50%, rgba(91,164,207,0.08) 0%, transparent 60%),
+                radial-gradient(ellipse at 80% 20%, rgba(255,153,0,0.06) 0%, transparent 50%),
+                radial-gradient(ellipse at 50% 80%, rgba(26,58,107,0.4) 0%, transparent 60%);
+        }
+
+        .cloud-bg {
+            position: fixed; pointer-events: none; z-index: 0; opacity: 0.04;
+            font-size: clamp(80px, 15vw, 180px);
+            animation: floatCloud linear infinite;
+            user-select: none;
+        }
+        .cloud-bg:nth-child(1) { top: 10%; left: -10%; animation-duration: 35s; font-size: 120px; }
+        .cloud-bg:nth-child(2) { top: 40%; left: -15%; animation-duration: 50s; animation-delay: -15s; font-size: 90px; }
+        .cloud-bg:nth-child(3) { top: 70%; left: -10%; animation-duration: 42s; animation-delay: -8s; font-size: 150px; }
+
+        @keyframes floatCloud {
+            from { transform: translateX(-200px); }
+            to   { transform: translateX(110vw); }
+        }
+
+        nav {
+            position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+            padding: 1rem 2rem;
+            display: flex; justify-content: space-between; align-items: center;
+            background: rgba(10, 22, 40, 0.85);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(91,164,207,0.15);
+        }
+        .nav-logo {
+            font-family: var(--font-display);
+            font-size: 0.85rem;
+            color: var(--aws-orange);
+            letter-spacing: 0.1em;
+            text-decoration: none;
+        }
+        .nav-links { display: flex; gap: 2rem; list-style: none; }
+        .nav-links a {
+            color: var(--cloud-mist);
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 500;
+            letter-spacing: 0.05em;
+            transition: color var(--transition);
+        }
+        .nav-links a:hover { color: var(--aws-orange); }
+
+        .hero {
+            position: relative; z-index: 1;
+            min-height: 100vh;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            text-align: center;
+            padding: 8rem 2rem 4rem;
+        }
+        .hero-avatar {
+            width: 160px; height: 160px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid var(--aws-orange);
+            box-shadow:
+                0 0 0 6px rgba(255,153,0,0.1),
+                0 0 40px rgba(255,153,0,0.2),
+                0 0 80px rgba(91,164,207,0.15);
+            margin-bottom: 2rem;
+            animation: avatarPulse 4s ease-in-out infinite;
+        }
+        @keyframes avatarPulse {
+            0%, 100% { box-shadow: 0 0 0 6px rgba(255,153,0,0.1), 0 0 40px rgba(255,153,0,0.2), 0 0 80px rgba(91,164,207,0.15); }
+            50%       { box-shadow: 0 0 0 10px rgba(255,153,0,0.15), 0 0 60px rgba(255,153,0,0.3), 0 0 100px rgba(91,164,207,0.25); }
+        }
+        .hero-label {
+            font-family: var(--font-display);
+            font-size: 0.75rem;
+            letter-spacing: 0.3em;
+            color: var(--aws-orange);
+            text-transform: uppercase;
+            margin-bottom: 1rem;
+            opacity: 0;
+            animation: fadeUp 0.8s ease forwards 0.2s;
+        }
+        .hero-name {
+            font-family: var(--font-display);
+            font-size: clamp(2.5rem, 6vw, 4.5rem);
+            font-weight: 700;
+            line-height: 1.1;
+            margin-bottom: 0.5rem;
+            opacity: 0;
+            animation: fadeUp 0.8s ease forwards 0.4s;
+        }
+        .hero-name span { color: var(--aws-orange); }
+        .hero-title {
+            font-size: 1.1rem;
+            color: var(--cloud-mist);
+            font-weight: 300;
+            margin-bottom: 1.5rem;
+            opacity: 0;
+            animation: fadeUp 0.8s ease forwards 0.6s;
+        }
+        .hero-tagline {
+            font-family: var(--font-display);
+            font-size: clamp(1rem, 2.5vw, 1.3rem);
+            color: var(--vmware-teal);
+            margin-bottom: 3rem;
+            opacity: 0;
+            animation: fadeUp 0.8s ease forwards 0.8s;
+        }
+        .hero-cta {
+            display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center;
+            opacity: 0;
+            animation: fadeUp 0.8s ease forwards 1s;
+        }
+        .btn {
+            padding: 0.75rem 2rem;
+            border-radius: var(--radius);
+            font-family: var(--font-display);
+            font-size: 0.8rem;
+            letter-spacing: 0.1em;
+            text-decoration: none;
+            font-weight: 700;
+            transition: all var(--transition);
+            cursor: pointer; border: none;
+        }
+        .btn-primary { background: var(--aws-orange); color: var(--sky-deep); }
+        .btn-primary:hover { background: #ffb133; transform: translateY(-2px); box-shadow: 0 8px 25px rgba(255,153,0,0.3); }
+        .btn-outline { background: transparent; color: var(--cloud-white); border: 1px solid rgba(255,255,255,0.2); }
+        .btn-outline:hover { border-color: var(--aws-orange); color: var(--aws-orange); transform: translateY(-2px); }
+
+        .scroll-hint {
+            position: absolute; bottom: 2rem; left: 50%; transform: translateX(-50%);
+            display: flex; flex-direction: column; align-items: center; gap: 0.5rem;
+            color: var(--cloud-mist);
+            font-size: 0.75rem;
+            opacity: 0;
+            animation: fadeUp 1s ease forwards 1.5s;
+        }
+        .scroll-arrow {
+            width: 1px; height: 40px;
+            background: linear-gradient(to bottom, var(--aws-orange), transparent);
+            animation: scrollBounce 2s ease-in-out infinite;
+        }
+        @keyframes scrollBounce {
+            0%, 100% { transform: scaleY(1); opacity: 1; }
+            50%       { transform: scaleY(0.6); opacity: 0.5; }
+        }
+
+        section { position: relative; z-index: 1; padding: 6rem 2rem; }
+        .container { max-width: 1100px; margin: 0 auto; }
+        .section-header { margin-bottom: 4rem; }
+        .section-label {
+            font-family: var(--font-display);
+            font-size: 0.7rem;
+            letter-spacing: 0.3em;
+            color: var(--aws-orange);
+            text-transform: uppercase;
+            margin-bottom: 0.75rem;
+            display: block;
+        }
+        .section-title {
+            font-family: var(--font-display);
+            font-size: clamp(1.8rem, 4vw, 2.8rem);
+            font-weight: 700;
+            line-height: 1.2;
+        }
+        .section-divider {
+            width: 60px; height: 3px;
+            background: var(--aws-orange);
+            margin-top: 1rem;
+            border-radius: 2px;
+        }
+
+        .journey { background: var(--sky-mid); }
+        .timeline { position: relative; padding-left: 2rem; }
+        .timeline::before {
+            content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 2px;
+            background: linear-gradient(to bottom, var(--aws-orange), var(--vmware-teal), var(--aws-orange));
+        }
+        .timeline-item {
+            position: relative; margin-bottom: 3rem; padding-left: 2rem;
+            opacity: 0; transform: translateX(-20px);
+            transition: all 0.6s ease;
+        }
+        .timeline-item.visible { opacity: 1; transform: translateX(0); }
+        .timeline-dot {
+            position: absolute; left: -2.45rem; top: 0.3rem;
+            width: 14px; height: 14px;
+            border-radius: 50%;
+            border: 2px solid var(--aws-orange);
+            background: var(--sky-deep);
+        }
+        .timeline-dot.active {
+            background: var(--aws-orange);
+            box-shadow: 0 0 15px rgba(255,153,0,0.5);
+        }
+        .timeline-year {
+            font-family: var(--font-display);
+            font-size: 0.7rem;
+            color: var(--aws-orange);
+            letter-spacing: 0.2em;
+            margin-bottom: 0.25rem;
+        }
+        .timeline-role { font-size: 1.1rem; font-weight: 700; color: var(--cloud-white); margin-bottom: 0.25rem; }
+        .timeline-company { font-size: 0.9rem; color: var(--vmware-teal); margin-bottom: 0.5rem; }
+        .timeline-desc { font-size: 0.9rem; color: var(--cloud-mist); line-height: 1.6; }
+
+        .motivation-card {
+            margin-top: 4rem; padding: 2.5rem;
+            background: rgba(255,153,0,0.05);
+            border: 1px solid rgba(255,153,0,0.2);
+            border-radius: var(--radius);
+            border-left: 4px solid var(--aws-orange);
+        }
+        .motivation-card p { font-size: 1.05rem; color: var(--cloud-white); font-style: italic; line-height: 1.8; }
+        .motivation-card cite {
+            display: block; margin-top: 1rem;
+            font-size: 0.85rem; color: var(--aws-orange);
+            font-style: normal;
+            font-family: var(--font-display);
+        }
+
+        .skills-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; }
+        .skill-card {
+            background: var(--sky-mid);
+            border: 1px solid rgba(91,164,207,0.15);
+            border-radius: var(--radius);
+            padding: 2rem;
+            transition: all var(--transition);
+        }
+        .skill-card:hover { border-color: var(--aws-orange); transform: translateY(-4px); box-shadow: 0 12px 30px rgba(0,0,0,0.3); }
+        .skill-card-icon { font-size: 2rem; margin-bottom: 1rem; }
+        .skill-card-title {
+            font-family: var(--font-display);
+            font-size: 0.85rem;
+            letter-spacing: 0.1em;
+            color: var(--aws-orange);
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+        }
+        .skill-tags { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+        .skill-tag {
+            padding: 0.3rem 0.8rem;
+            background: rgba(91,164,207,0.1);
+            border: 1px solid rgba(91,164,207,0.2);
+            border-radius: 20px;
+            font-size: 0.8rem;
+            color: var(--cloud-mist);
+            transition: all var(--transition);
+        }
+        .skill-tag:hover { background: var(--aws-glow); border-color: var(--aws-orange); color: var(--aws-orange); }
+        .skill-tag.highlight { background: var(--aws-glow); border-color: rgba(255,153,0,0.3); color: var(--aws-orange); }
+
+        .certs { background: var(--sky-mid); }
+        .certs-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; }
+        .cert-card {
+            background: var(--sky-deep);
+            border: 1px solid rgba(91,164,207,0.15);
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            display: flex; align-items: flex-start; gap: 1rem;
+            transition: all var(--transition);
+        }
+        .cert-card:hover { border-color: var(--aws-orange); transform: translateY(-3px); }
+        .cert-card.highlight { border-color: rgba(255,153,0,0.4); background: rgba(255,153,0,0.04); }
+        .cert-icon { font-size: 1.5rem; flex-shrink: 0; }
+        .cert-name { font-size: 0.9rem; font-weight: 600; color: var(--cloud-white); margin-bottom: 0.25rem; line-height: 1.4; }
+        .cert-vendor { font-size: 0.75rem; color: var(--cloud-mist); }
+        .cert-badge {
+            display: inline-block; margin-top: 0.5rem;
+            padding: 0.15rem 0.6rem;
+            background: var(--aws-glow);
+            border: 1px solid rgba(255,153,0,0.3);
+            border-radius: 10px;
+            font-size: 0.7rem;
+            color: var(--aws-orange);
+            font-family: var(--font-display);
+        }
+
+        .projects-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 2rem; }
+        .project-card {
+            background: var(--sky-mid);
+            border: 1px solid rgba(91,164,207,0.15);
+            border-radius: var(--radius);
+            padding: 2rem;
+            transition: all var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+        .project-card::before {
+            content: '☁'; position: absolute; right: -10px; top: -10px;
+            font-size: 80px; opacity: 0.04;
+            transition: all var(--transition);
+        }
+        .project-card.featured {
+            border-color: rgba(255,153,0,0.4);
+            background: linear-gradient(135deg, var(--sky-mid), rgba(255,153,0,0.03));
+            grid-column: span 2;
+        }
+        .project-card:hover { border-color: var(--aws-orange); transform: translateY(-6px); box-shadow: 0 20px 40px rgba(0,0,0,0.4); }
+        .project-card:hover::before { opacity: 0.08; }
+        .project-status {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-family: var(--font-display);
+            letter-spacing: 0.1em;
+            margin-bottom: 1rem;
+        }
+        .project-status.live { background: rgba(76,175,147,0.15); color: var(--success); border: 1px solid rgba(76,175,147,0.3); }
+        .project-status.wip { background: var(--aws-glow); color: var(--aws-orange); border: 1px solid rgba(255,153,0,0.3); }
+        .project-status.featured { background: var(--aws-glow); color: var(--aws-orange); border: 1px solid var(--aws-orange); }
+        .project-title { font-family: var(--font-display); font-size: 1.1rem; color: var(--cloud-white); margin-bottom: 0.75rem; }
+        .project-desc { font-size: 0.9rem; color: var(--cloud-mist); line-height: 1.6; margin-bottom: 1.5rem; }
+        .project-tech { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 1.5rem; }
+        .project-tech span {
+            padding: 0.2rem 0.6rem;
+            background: rgba(255,153,0,0.08);
+            border: 1px solid rgba(255,153,0,0.2);
+            border-radius: 6px;
+            font-size: 0.75rem;
+            color: var(--aws-orange);
+            font-family: var(--font-display);
+        }
+        .project-links { display: flex; gap: 1rem; flex-wrap: wrap; }
+        .project-link {
+            font-size: 0.8rem;
+            color: var(--vmware-teal);
+            text-decoration: none;
+            font-family: var(--font-display);
+            letter-spacing: 0.05em;
+            transition: color var(--transition);
+        }
+        .project-link:hover { color: var(--aws-orange); }
+        .project-link.primary { color: var(--aws-orange); }
+        .project-link.primary:hover { color: var(--cloud-white); }
+
+        .contact { background: var(--sky-mid); text-align: center; }
+        .contact-intro {
+            max-width: 600px; margin: 0 auto 3rem;
+            font-size: 1.05rem;
+            color: var(--cloud-mist);
+            line-height: 1.8;
+        }
+        .contact-links {
+            display: flex; justify-content: center; flex-wrap: wrap;
+            gap: 1.5rem;
+            margin-bottom: 4rem;
+        }
+        .contact-link {
+            display: flex; align-items: center; gap: 0.75rem;
+            padding: 1rem 2rem;
+            background: var(--sky-deep);
+            border: 1px solid rgba(91,164,207,0.2);
+            border-radius: var(--radius);
+            text-decoration: none;
+            color: var(--cloud-white);
+            font-weight: 500;
+            transition: all var(--transition);
+            min-width: 200px;
+            justify-content: center;
+        }
+        .contact-link:hover {
+            border-color: var(--aws-orange);
+            color: var(--aws-orange);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+        }
+        .contact-link-icon { font-size: 1.2rem; }
+        .open-to-work {
+            display: inline-flex; align-items: center; gap: 0.5rem;
+            padding: 0.5rem 1.5rem;
+            background: rgba(76,175,147,0.1);
+            border: 1px solid rgba(76,175,147,0.3);
+            border-radius: 30px;
+            color: var(--success);
+            font-size: 0.85rem;
+            font-family: var(--font-display);
+            letter-spacing: 0.05em;
+        }
+        .open-to-work::before {
+            content: ''; width: 8px; height: 8px;
+            background: var(--success);
+            border-radius: 50%;
+            animation: blink 2s ease-in-out infinite;
+        }
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50%       { opacity: 0.3; }
+        }
+
+        footer {
+            position: relative; z-index: 1;
+            text-align: center; padding: 2rem;
+            border-top: 1px solid rgba(91,164,207,0.1);
+            color: var(--cloud-mist);
+            font-size: 0.8rem;
+            font-family: var(--font-display);
+        }
+        footer span { color: var(--aws-orange); }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        .fade-in { opacity: 0; transform: translateY(20px); transition: opacity 0.6s ease, transform 0.6s ease; }
+        .fade-in.visible { opacity: 1; transform: translateY(0); }
+
+        @media (max-width: 768px) {
+            nav { padding: 1rem; }
+            .nav-links { gap: 1rem; }
+            .nav-links a { font-size: 0.75rem; }
+            section { padding: 4rem 1.25rem; }
+            .timeline { padding-left: 1.5rem; }
+            .timeline-item { padding-left: 1.5rem; }
+            .timeline-dot { left: -1.95rem; }
+            .projects-grid { grid-template-columns: 1fr; }
+            .project-card.featured { grid-column: span 1; }
+            .contact-links { flex-direction: column; align-items: center; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="bg-stars"></div>
+    <div class="cloud-bg">☁</div>
+    <div class="cloud-bg">☁</div>
+    <div class="cloud-bg">☁</div>
+
+    <nav>
+        <a href="#hero" class="nav-logo">JK // CLOUD</a>
+        <ul class="nav-links">
+            <li><a href="#journey">Journey</a></li>
+            <li><a href="#skills">Skills</a></li>
+            <li><a href="#certs">Certs</a></li>
+            <li><a href="#projects">Projects</a></li>
+            <li><a href="#contact">Contact</a></li>
+        </ul>
+    </nav>
+
+    <section id="hero" class="hero">
+        <img src="photo.jpg" alt="Jola Kowalewska" class="hero-avatar">
+
+        <p class="hero-label">☁ Above the Clouds</p>
+        <h1 class="hero-name">Jola <span>Kowalewska</span></h1>
+        <p class="hero-title">Cloud Engineer · AWS Certified · Python Developer · VMware Veteran</p>
+        <p class="hero-tagline">From VMware to AWS Serverless ☁️</p>
+
+        <div class="hero-cta">
+            <a href="#projects" class="btn btn-primary">View Projects</a>
+            <a href="#contact" class="btn btn-outline">Let's Connect</a>
+        </div>
+
+        <div class="scroll-hint">
+            <span>scroll</span>
+            <div class="scroll-arrow"></div>
+        </div>
+    </section>
+
+    <section id="journey" class="journey">
+        <div class="container">
+            <div class="section-header fade-in">
+                <span class="section-label">🛫 Flight Path</span>
+                <h2 class="section-title">My Journey</h2>
+                <div class="section-divider"></div>
+            </div>
+
+            <div class="timeline">
+
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <p class="timeline-year">2008 — 2013</p>
+                    <p class="timeline-role">🎓 Student → First Steps in IT</p>
+                    <p class="timeline-company">University of Technology and Life Sciences, Bydgoszcz</p>
+                    <p class="timeline-desc">
+                        BSc in Data Communications. First IT experience during Polish EU Presidency — first-line support.
+                        Troubleshooting became my natural path from day one.
+                    </p>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <p class="timeline-year">2013 — 2018</p>
+                    <p class="timeline-role">🏢 VMware Technical Support Engineer</p>
+                    <p class="timeline-company">GK IT.expert</p>
+                    <p class="timeline-desc">
+                        Nearly 5 years supporting Polish VMware clients. Deep expertise in vSphere troubleshooting,
+                        incident resolution, and enterprise infrastructure. Learned that understanding the problem
+                        is half the solution.
+                    </p>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <p class="timeline-year">2018 — 2025</p>
+                    <p class="timeline-role">☁️ Cloud System Architect / Upgrade & Deployment Engineer</p>
+                    <p class="timeline-company">Atos Poland Global Services / S&T Poland</p>
+                    <p class="timeline-desc">
+                        7 years designing and executing private cloud deployments — vSphere, vRO, vRA, Dell VBlock, RCM upgrades.
+                        Planning full-scale upgrade cycles for enterprise clients across Europe.
+                        From engineer to architect.
+                    </p>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-dot active"></div>
+                    <p class="timeline-year">2026 — Now</p>
+                    <p class="timeline-role">🚀 AWS Cloud Engineer · Serverless · IaC</p>
+                    <p class="timeline-company">Self-directed learning · Open to new role</p>
+                    <p class="timeline-desc">
+                        Started Python on January 26, 2026. Passed AWS Solutions Architect Associate (SAA-C03)
+                        in April with 809/1000. Building production-grade serverless apps with Lambda, DynamoDB,
+                        Step Functions, Terraform Workspaces and GitHub Actions CI/CD.
+                        The destination: Cloud / DevOps Engineer in public cloud.
+                    </p>
+                </div>
+
+            </div>
+
+            <div class="motivation-card fade-in">
+                <p>
+                    "I like to crack problems and put together puzzles.
+                    Troubleshooting is my natural path — step by step to the solution.
+                    That satisfaction of <em>'It works!'</em> drives me every day.
+                    After 14 years in private cloud — it's time to rise higher."</p>
+                <cite>— Why IT? Why AWS?</cite>
+            </div>
+
+        </div>
+    </section>
+
+    <section id="skills">
+        <div class="container">
+            <div class="section-header fade-in">
+                <span class="section-label">⚙️ Stack</span>
+                <h2 class="section-title">Skills & Technologies</h2>
+                <div class="section-divider"></div>
+            </div>
+
+            <div class="skills-grid">
+
+                <div class="skill-card fade-in">
+                    <div class="skill-card-icon">☁️</div>
+                    <p class="skill-card-title">AWS — Hands-on</p>
+                    <div class="skill-tags">
+                        <span class="skill-tag highlight">Lambda</span>
+                        <span class="skill-tag highlight">DynamoDB</span>
+                        <span class="skill-tag highlight">API Gateway</span>
+                        <span class="skill-tag highlight">Step Functions</span>
+                        <span class="skill-tag highlight">EventBridge</span>
+                        <span class="skill-tag highlight">SES</span>
+                        <span class="skill-tag highlight">SNS</span>
+                        <span class="skill-tag highlight">SSM</span>
+                        <span class="skill-tag highlight">CloudFront</span>
+                        <span class="skill-tag highlight">S3</span>
+                        <span class="skill-tag">EC2</span>
+                        <span class="skill-tag">IAM / OIDC</span>
+                        <span class="skill-tag">CloudWatch</span>
+                    </div>
+                </div>
+
+                <div class="skill-card fade-in">
+                    <div class="skill-card-icon">🛠️</div>
+                    <p class="skill-card-title">IaC & DevOps</p>
+                    <div class="skill-tags">
+                        <span class="skill-tag highlight">Terraform</span>
+                        <span class="skill-tag highlight">Workspaces</span>
+                        <span class="skill-tag highlight">GitHub Actions</span>
+                        <span class="skill-tag highlight">CI/CD</span>
+                        <span class="skill-tag">OIDC</span>
+                        <span class="skill-tag">Git</span>
+                        <span class="skill-tag">Bash</span>
+                    </div>
+                </div>
+
+                <div class="skill-card fade-in">
+                    <div class="skill-card-icon">🐍</div>
+                    <p class="skill-card-title">Python — Building</p>
+                    <div class="skill-tags">
+                        <span class="skill-tag highlight">boto3</span>
+                        <span class="skill-tag highlight">Lambda runtime</span>
+                        <span class="skill-tag highlight">Anthropic SDK</span>
+                        <span class="skill-tag highlight">requests</span>
+                        <span class="skill-tag">pandas</span>
+                        <span class="skill-tag">OOP</span>
+                        <span class="skill-tag">SPARQL</span>
+                    </div>
+                </div>
+
+                <div class="skill-card fade-in">
+                    <div class="skill-card-icon">🖥️</div>
+                    <p class="skill-card-title">VMware — Expert</p>
+                    <div class="skill-tags">
+                        <span class="skill-tag highlight">vSphere</span>
+                        <span class="skill-tag highlight">vRO</span>
+                        <span class="skill-tag highlight">vRA</span>
+                        <span class="skill-tag highlight">vSAN</span>
+                        <span class="skill-tag">Dell VBlock</span>
+                        <span class="skill-tag">RCM Upgrades</span>
+                        <span class="skill-tag">vDS</span>
+                        <span class="skill-tag">DRS/HA</span>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <section id="certs" class="certs">
+        <div class="container">
+            <div class="section-header fade-in">
+                <span class="section-label">📜 Leveling Up</span>
+                <h2 class="section-title">Certifications</h2>
+                <div class="section-divider"></div>
+            </div>
+
+            <div class="certs-grid">
+
+                <div class="cert-card highlight fade-in">
+                    <div class="cert-icon">🟠</div>
+                    <div>
+                        <p class="cert-name">AWS Certified Solutions Architect – Associate</p>
+                        <p class="cert-vendor">Amazon Web Services · SAA-C03 · April 2026 · Score 809/1000</p>
+                        <span class="cert-badge">PASSED</span>
+                    </div>
+                </div>
+
+                <div class="cert-card fade-in">
+                    <div class="cert-icon">🔵</div>
+                    <div>
+                        <p class="cert-name">VCAP6-DCV Deploy</p>
+                        <p class="cert-vendor">VMware Certified Advanced Professional 6 – Data Center Virtualization Deployment</p>
+                    </div>
+                </div>
+
+                <div class="cert-card fade-in">
+                    <div class="cert-icon">🔵</div>
+                    <div>
+                        <p class="cert-name">VCP6-DCV</p>
+                        <p class="cert-vendor">VMware Certified Professional 6 – Data Center Virtualization</p>
+                    </div>
+                </div>
+
+                <div class="cert-card fade-in">
+                    <div class="cert-icon">🔵</div>
+                    <div>
+                        <p class="cert-name">VCP7-CMA</p>
+                        <p class="cert-vendor">VMware Certified Professional 7 – Cloud Management and Automation</p>
+                    </div>
+                </div>
+
+                <div class="cert-card fade-in">
+                    <div class="cert-icon">🔵</div>
+                    <div>
+                        <p class="cert-name">VCP6-DTM</p>
+                        <p class="cert-vendor">VMware Certified Professional 6 – Desktop and Mobility</p>
+                    </div>
+                </div>
+
+                <div class="cert-card fade-in">
+                    <div class="cert-icon">🔵</div>
+                    <div>
+                        <p class="cert-name">VCP5-DCV · VCP-Cloud · VCP6-DT · VCA-DCV</p>
+                        <p class="cert-vendor">VMware Certified Professional Portfolio</p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <section id="projects">
+        <div class="container">
+            <div class="section-header fade-in">
+                <span class="section-label">🚀 Deployed in the Cloud</span>
+                <h2 class="section-title">Projects</h2>
+                <div class="section-divider"></div>
+            </div>
+
+            <div class="projects-grid">
+
+                <div class="project-card featured fade-in">
+                    <span class="project-status featured">★ FEATURED · LIVE</span>
+                    <h3 class="project-title">🌱 Plant Inventory App — Serverless on AWS</h3>
+                    <p class="project-desc">
+                        Production-grade serverless application for managing garden care plans.
+                        Step Functions orchestrates 11 Lambdas to generate yearly care schedules using
+                        Anthropic Claude AI, then verifies them monthly against weather forecasts via
+                        OpenWeatherMap and sends HTML email proposals through SES.
+                        Plant database (~1800 species) imported from Wikidata SPARQL.
+                        Frontend hosted on S3 + CloudFront with HTTPS. Full IaC with Terraform Workspaces
+                        and zero-keys CI/CD via GitHub Actions + OIDC.
+                    </p>
+                    <div class="project-tech">
+                        <span>Lambda</span>
+                        <span>DynamoDB</span>
+                        <span>Step Functions</span>
+                        <span>API Gateway</span>
+                        <span>EventBridge</span>
+                        <span>SES</span>
+                        <span>SSM</span>
+                        <span>CloudFront</span>
+                        <span>S3</span>
+                        <span>Terraform</span>
+                        <span>GitHub Actions</span>
+                        <span>Claude AI</span>
+                        <span>Python</span>
+                    </div>
+                    <div class="project-links">
+                        <a href="https://d1izq5f0ackn63.cloudfront.net" target="_blank" class="project-link primary">→ Live Demo</a>
+                        <a href="https://github.com/jolanta-kowalewska/plant-inventory-app" target="_blank" class="project-link">→ GitHub</a>
+                    </div>
+                </div>
+
+                <div class="project-card fade-in">
+                    <span class="project-status live">✓ LIVE</span>
+                    <h3 class="project-title">AWS EC2 Manager</h3>
+                    <p class="project-desc">
+                        Python CLI tool for managing EC2 instances — list, start, stop, reboot and terminate
+                        with selective instance targeting. Includes audit logging to S3 with caller identity
+                        tracking via AWS STS. Built with OOP, error handling and daily log rotation.
+                    </p>
+                    <div class="project-tech">
+                        <span>Python</span>
+                        <span>boto3</span>
+                        <span>EC2</span>
+                        <span>S3</span>
+                        <span>IAM</span>
+                        <span>STS</span>
+                    </div>
+                    <div class="project-links">
+                        <a href="https://github.com/jolanta-kowalewska/aws_EC2_manager" target="_blank" class="project-link">→ GitHub</a>
+                    </div>
+                </div>
+
+                <div class="project-card fade-in">
+                    <span class="project-status live">✓ LIVE</span>
+                    <h3 class="project-title">Currency Converter AWS + Pandas</h3>
+                    <p class="project-desc">
+                        Full-featured currency converter with live exchange rates via API, conversion history
+                        stored in S3, and advanced Pandas analytics reports. Menu-driven CLI with duplicate
+                        detection and S3 file management.
+                    </p>
+                    <div class="project-tech">
+                        <span>Python</span>
+                        <span>boto3</span>
+                        <span>pandas</span>
+                        <span>S3</span>
+                        <span>requests</span>
+                    </div>
+                    <div class="project-links">
+                        <a href="https://github.com/jolanta-kowalewska/currency-converter-aws-pandas" target="_blank" class="project-link">→ GitHub</a>
+                    </div>
+                </div>
+
+                <div class="project-card fade-in">
+                    <span class="project-status live">✓ LIVE</span>
+                    <h3 class="project-title">AWS Health Checker</h3>
+                    <p class="project-desc">
+                        Python CLI tool that queries AWS infrastructure and saves a JSON health report to S3.
+                        Checks: EC2 instance IDs and states, S3 bucket sizes via CloudWatch, IAM user count
+                        with last login, and ELB load balancer types and states.
+                    </p>
+                    <div class="project-tech">
+                        <span>Python</span>
+                        <span>boto3</span>
+                        <span>EC2</span>
+                        <span>S3</span>
+                        <span>IAM</span>
+                        <span>ELB</span>
+                    </div>
+                    <div class="project-links">
+                        <a href="https://github.com/jolanta-kowalewska/AWS-SimpleHealthCheckTool" target="_blank" class="project-link">→ GitHub</a>
+                    </div>
+                </div>
+
+                <div class="project-card fade-in">
+                    <span class="project-status live">✓ LIVE</span>
+                    <h3 class="project-title">EC2 On-Demand Price Comparator</h3>
+                    <p class="project-desc">
+                        Python CLI tool that compares EC2 On-Demand prices across AWS regions using the
+                        AWS Pricing API. Highlights the cheapest region for any instance type and OS.
+                        Live prices reflect current On-Demand rates with OS license costs included.
+                    </p>
+                    <div class="project-tech">
+                        <span>Python</span>
+                        <span>boto3</span>
+                        <span>AWS Pricing API</span>
+                    </div>
+                    <div class="project-links">
+                        <a href="https://github.com/jolanta-kowalewska/ec2-price-comparator" target="_blank" class="project-link">→ GitHub</a>
+                    </div>
+                </div>
+
+                <div class="project-card fade-in">
+                    <span class="project-status wip">⚡ COMING NEXT</span>
+                    <h3 class="project-title">Containers + EKS Deep Dive</h3>
+                    <p class="project-desc">
+                        Next learning project — containerized application on Amazon EKS,
+                        deeper Terraform with modules, and CKA preparation.
+                        Building hands-on Kubernetes experience to complement serverless skills.
+                    </p>
+                    <div class="project-tech">
+                        <span>EKS</span>
+                        <span>Docker</span>
+                        <span>Kubernetes</span>
+                        <span>Terraform</span>
+                        <span>Helm</span>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <section id="contact" class="contact">
+        <div class="container">
+            <div class="section-header fade-in">
+                <span class="section-label">📡 Let's Connect</span>
+                <h2 class="section-title">Get In Touch</h2>
+                <div class="section-divider" style="margin: 1rem auto 0;"></div>
+            </div>
+
+            <p class="contact-intro fade-in">
+                I'm actively looking for a Cloud Engineer or DevOps Engineer role.
+                If you're building cloud infrastructure and need someone who understands
+                both the theory and the operational reality — let's talk.
+            </p>
+
+            <div class="contact-links fade-in">
+                <a href="https://www.linkedin.com/in/jolanta-kowalewska-b1281799" target="_blank" class="contact-link">
+                    <span class="contact-link-icon">💼</span>
+                    LinkedIn
+                </a>
+                <a href="https://github.com/jolanta-kowalewska" target="_blank" class="contact-link">
+                    <span class="contact-link-icon">💻</span>
+                    GitHub
+                </a>
+                <a href="mailto:brzojr@gmail.com" class="contact-link">
+                    <span class="contact-link-icon">✉️</span>
+                    Email
+                </a>
+            </div>
+
+            <div class="fade-in">
+                <span class="open-to-work">Open to new opportunities</span>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <p>Built by <span>Jola Kowalewska</span> · Hosted on <span>AWS S3</span> · 2026</p>
+    </footer>
+
+    <script>
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach((entry, i) => {
+                if (entry.isIntersecting) {
+                    setTimeout(() => {
+                        entry.target.classList.add('visible');
+                    }, i * 100);
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('.fade-in, .timeline-item').forEach(el => {
+            observer.observe(el);
+        });
+    </script>
+
+</body>
+</html>

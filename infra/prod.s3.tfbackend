@@ -1,0 +1,7 @@
+# terraform init -backend-config=prod.s3.tfbackend
+# Bucket zakłada bootstrap (bootstrap/bootstrap.yaml), nie Terraform.
+bucket       = "kowalewskasoftware-www-tfstate-298712672271"
+key          = "www/terraform.tfstate"
+region       = "eu-central-1"
+encrypt      = true
+use_lockfile = true

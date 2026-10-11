@@ -1,355 +1,508 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AWS CloudFront + S3 | Terraform Demo</title>
-  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
-  <style>
-    :root {
-      --bg: #0a0e1a;
-      --surface: #111827;
-      --border: #1e293b;
-      --accent: #f97316;
-      --accent2: #38bdf8;
-      --text: #e2e8f0;
-      --muted: #64748b;
-      --green: #4ade80;
-    }
-
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: 'Syne', sans-serif;
-      min-height: 100vh;
-      overflow-x: hidden;
-    }
-
-    /* Grid background */
-    body::before {
-      content: '';
-      position: fixed;
-      inset: 0;
-      background-image:
-        linear-gradient(rgba(249,115,22,0.03) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(249,115,22,0.03) 1px, transparent 1px);
-      background-size: 60px 60px;
-      pointer-events: none;
-      z-index: 0;
-    }
-
-    .container {
-      max-width: 900px;
-      margin: 0 auto;
-      padding: 0 2rem;
-      position: relative;
-      z-index: 1;
-    }
-
-    /* Header */
-    header {
-      padding: 3rem 0 2rem;
-      border-bottom: 1px solid var(--border);
-    }
-
-    .badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.5rem;
-      background: rgba(249,115,22,0.1);
-      border: 1px solid rgba(249,115,22,0.3);
-      color: var(--accent);
-      font-family: 'Space Mono', monospace;
-      font-size: 0.75rem;
-      padding: 0.35rem 0.75rem;
-      border-radius: 2px;
-      margin-bottom: 1.5rem;
-      animation: fadeIn 0.5s ease;
-    }
-
-    .badge::before {
-      content: '●';
-      animation: pulse 2s infinite;
-    }
-
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.3; }
-    }
-
-    h1 {
-      font-size: clamp(2rem, 5vw, 3.5rem);
-      font-weight: 800;
-      line-height: 1.1;
-      margin-bottom: 1rem;
-      animation: slideUp 0.6s ease;
-    }
-
-    h1 span {
-      color: var(--accent);
-    }
-
-    .subtitle {
-      font-family: 'Space Mono', monospace;
-      font-size: 0.9rem;
-      color: var(--muted);
-      animation: slideUp 0.7s ease;
-    }
-
-    /* Architecture section */
-    .section {
-      padding: 3rem 0;
-      border-bottom: 1px solid var(--border);
-      animation: fadeIn 0.8s ease;
-    }
-
-    .section-label {
-      font-family: 'Space Mono', monospace;
-      font-size: 0.7rem;
-      color: var(--accent);
-      text-transform: uppercase;
-      letter-spacing: 0.15em;
-      margin-bottom: 1.5rem;
-    }
-
-    /* Architecture flow */
-    .arch-flow {
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-      flex-wrap: wrap;
-      margin: 1.5rem 0;
-    }
-
-    .arch-node {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      padding: 0.75rem 1.25rem;
-      border-radius: 4px;
-      font-family: 'Space Mono', monospace;
-      font-size: 0.8rem;
-      position: relative;
-      transition: border-color 0.2s, transform 0.2s;
-    }
-
-    .arch-node:hover {
-      border-color: var(--accent);
-      transform: translateY(-2px);
-    }
-
-    .arch-node.highlight {
-      border-color: var(--accent2);
-      color: var(--accent2);
-    }
-
-    .arch-arrow {
-      color: var(--muted);
-      font-size: 1.2rem;
-    }
-
-    /* Stack grid */
-    .stack-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 1rem;
-      margin-top: 1.5rem;
-    }
-
-    .stack-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      padding: 1.25rem;
-      border-radius: 4px;
-      transition: border-color 0.2s, transform 0.2s;
-    }
-
-    .stack-card:hover {
-      border-color: var(--accent);
-      transform: translateY(-3px);
-    }
-
-    .stack-card .icon {
-      font-size: 1.5rem;
-      margin-bottom: 0.75rem;
-    }
-
-    .stack-card h3 {
-      font-size: 0.9rem;
-      font-weight: 700;
-      margin-bottom: 0.4rem;
-    }
-
-    .stack-card p {
-      font-family: 'Space Mono', monospace;
-      font-size: 0.7rem;
-      color: var(--muted);
-      line-height: 1.6;
-    }
-
-    /* Code block */
-    .code-block {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-left: 3px solid var(--accent);
-      padding: 1.25rem 1.5rem;
-      border-radius: 4px;
-      font-family: 'Space Mono', monospace;
-      font-size: 0.8rem;
-      line-height: 1.8;
-      margin-top: 1.5rem;
-      overflow-x: auto;
-    }
-
-    .code-block .kw { color: var(--accent2); }
-    .code-block .str { color: var(--green); }
-    .code-block .comment { color: var(--muted); }
-
-    /* Status bar */
-    .status-bar {
-      display: flex;
-      gap: 1.5rem;
-      flex-wrap: wrap;
-      margin-top: 1.5rem;
-    }
-
-    .status-item {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      font-family: 'Space Mono', monospace;
-      font-size: 0.75rem;
-    }
-
-    .status-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: var(--green);
-      animation: pulse 2s infinite;
-    }
-
-    .status-dot.orange { background: var(--accent); }
-    .status-dot.blue { background: var(--accent2); }
-
-    /* Footer */
-    footer {
-      padding: 2rem 0;
-      font-family: 'Space Mono', monospace;
-      font-size: 0.75rem;
-      color: var(--muted);
-      display: flex;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 1rem;
-    }
-
-    footer a {
-      color: var(--accent);
-      text-decoration: none;
-    }
-
-    footer a:hover { text-decoration: underline; }
-
-    /* Animations */
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
-
-    @keyframes slideUp {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jola Kowalewska — założycielka Kowalewska Software · AWS Cloud Engineer</title>
+    <meta name="description" content="Tworzę na AWS IntegraHolistic (gabinety kosmetologii i trychologii holistycznej) i MindData (gabinety psychologiczne). 14 lat w chmurze prywatnej, AWS Solutions Architect Associate.">
+    <link rel="canonical" href="https://kowalewskasoftware.pl/">
+    <link rel="alternate" hreflang="pl" href="https://kowalewskasoftware.pl/">
+    <link rel="alternate" hreflang="en" href="https://kowalewskasoftware.pl/en/">
+    <link rel="alternate" hreflang="x-default" href="https://kowalewskasoftware.pl/">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://kowalewskasoftware.pl/">
+    <meta property="og:title" content="Jola Kowalewska — założycielka Kowalewska Software · AWS Cloud Engineer">
+    <meta property="og:description" content="Tworzę na AWS IntegraHolistic (gabinety kosmetologii i trychologii holistycznej) i MindData (gabinety psychologiczne). 14 lat w chmurze prywatnej, AWS Solutions Architect Associate.">
+    <meta property="og:image" content="https://kowalewskasoftware.pl/photo.jpg">
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E☁%3C/text%3E%3C/svg%3E">
+    <link rel="preload" href="/assets/fonts/space-mono-latin-700-normal.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="stylesheet" href="/assets/styles.css">
+    <script src="/assets/site.js" defer></script>
 </head>
 <body>
-  <div class="container">
 
-    <header>
-      <div class="badge">LIVE DEMO — AWS Infrastructure Project</div>
-      <h1>CloudFront + S3<br><span>via Terraform</span></h1>
-      <p class="subtitle">// Static site hosted on AWS · Deployed with IaC · Auto-invalidated cache</p>
-    </header>
+    <div class="bg-stars"></div>
+    <div class="cloud-bg">☁</div>
+    <div class="cloud-bg">☁</div>
+    <div class="cloud-bg">☁</div>
 
-    <section class="section">
-      <div class="section-label">// Architecture</div>
-      <div class="arch-flow">
-        <div class="arch-node">Browser</div>
-        <div class="arch-arrow">→</div>
-        <div class="arch-node highlight">CloudFront CDN</div>
-        <div class="arch-arrow">→</div>
-        <div class="arch-node">OAC</div>
-        <div class="arch-arrow">→</div>
-        <div class="arch-node">S3 Bucket<br><small style="color:var(--muted);font-size:0.65rem">private</small></div>
-      </div>
+    <nav>
+        <a href="#hero" class="nav-logo">JK // CLOUD</a>
+        <ul class="nav-links">
+            <li><a href="#journey">Droga</a></li>
+            <li><a href="#skills">Umiejętności</a></li>
+            <li><a href="#certs">Certyfikaty</a></li>
+            <li><a href="#projects">Projekty</a></li>
+            <li><a href="#contact">Kontakt</a></li>
+        </ul>
+        <a href="/en/" class="lang-switch" hreflang="en" lang="en">EN</a>
+    </nav>
 
-      <div class="status-bar">
-        <div class="status-item">
-          <div class="status-dot"></div>
-          HTTPS enforced (redirect HTTP→HTTPS)
+    <section id="hero" class="hero">
+        <img src="/photo.jpg" width="200" height="200" alt="Jola Kowalewska" class="hero-avatar">
+
+        <p class="hero-label">☁ Kowalewska Software</p>
+        <h1 class="hero-name">Jola <span>Kowalewska</span></h1>
+        <p class="hero-title">Założycielka · AWS Cloud Engineer · Solutions Architect Associate · VMware Veteran</p>
+        <p class="hero-tagline">Tworzę oprogramowanie dla gabinetów kosmetologii i trychologii holistycznej — na AWS ☁️</p>
+
+        <div class="hero-cta">
+            <a href="#projects" class="btn btn-primary">Zobacz projekty</a>
+            <a href="#contact" class="btn btn-outline">Napisz do mnie</a>
         </div>
-        <div class="status-item">
-          <div class="status-dot orange"></div>
-          Bucket: private (no public access)
+
+        <div class="scroll-hint">
+            <span>przewiń</span>
+            <div class="scroll-arrow"></div>
         </div>
-        <div class="status-item">
-          <div class="status-dot blue"></div>
-          Cache invalidation: automated
-        </div>
-      </div>
     </section>
 
-    <section class="section">
-      <div class="section-label">// Stack</div>
-      <div class="stack-grid">
-        <div class="stack-card">
-          <div class="icon">☁️</div>
-          <h3>Amazon S3</h3>
-          <p>Private bucket · Block all public access · OAC only</p>
+    <section id="journey" class="journey">
+        <div class="container">
+            <div class="section-header fade-in">
+                <span class="section-label">🛫 Trasa lotu</span>
+                <h2 class="section-title">Moja droga</h2>
+                <div class="section-divider"></div>
+            </div>
+
+            <div class="timeline">
+
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <p class="timeline-year">2008 — 2013</p>
+                    <p class="timeline-role">🎓 Studia → pierwsze kroki w IT</p>
+                    <p class="timeline-company">Uniwersytet Technologiczno-Przyrodniczy w Bydgoszczy</p>
+                    <p class="timeline-desc">
+                        Inżynier teleinformatyki. Pierwsze doświadczenie w IT przy polskiej prezydencji w UE — wsparcie pierwszej linii.
+                        Rozwiązywanie problemów od pierwszego dnia stało się moją naturalną drogą.
+                    </p>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <p class="timeline-year">2013 — 2018</p>
+                    <p class="timeline-role">🏢 VMware Technical Support Engineer</p>
+                    <p class="timeline-company">GK IT.expert</p>
+                    <p class="timeline-desc">
+                        Prawie 5 lat wsparcia polskich klientów VMware. Głęboka znajomość diagnozowania vSphere,
+                        rozwiązywania incydentów i infrastruktury korporacyjnej. Nauczyłam się, że zrozumienie
+                        problemu to połowa rozwiązania.
+                    </p>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <p class="timeline-year">2018 — 2025</p>
+                    <p class="timeline-role">☁️ Cloud System Architect / Upgrade & Deployment Engineer</p>
+                    <p class="timeline-company">Atos Poland Global Services / S&T Poland</p>
+                    <p class="timeline-desc">
+                        7 lat projektowania i wdrażania chmur prywatnych — vSphere, vRO, vRA, Dell VBlock, aktualizacje RCM.
+                        Planowanie pełnych cykli aktualizacji dla klientów korporacyjnych w całej Europie.
+                        Od inżynierki do architektki.
+                    </p>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-dot active"></div>
+                    <p class="timeline-year">2026 — teraz</p>
+                    <p class="timeline-role">🚀 Założycielka · Kowalewska Software</p>
+                    <p class="timeline-company">IntegraHolistic · MindData · AWS Serverless</p>
+                    <p class="timeline-desc">
+                        Pythona zaczęłam 26 stycznia 2026, a w kwietniu zdałam AWS Solutions Architect Associate (SAA-C03)
+                        z wynikiem 809/1000. Od lata tworzę IntegraHolistic — produkcyjną aplikację SaaS
+                        dla gabinetów kosmetologii i trychologii holistycznej, razem z praktykującą kosmetolożką.
+                        Dane o zdrowiu zrobione porządnie: osobne konto AWS w organizacji, polityki SCP,
+                        Identity Center z MFA, szyfrowanie KMS i codzienny raport bezpieczeństwa.
+                    </p>
+                </div>
+
+            </div>
+
+            <div class="motivation-card fade-in">
+                <p>
+                    „Lubię rozgryzać problemy i układać puzzle.
+                    Rozwiązywanie problemów to moja naturalna droga — krok po kroku do celu.
+                    Ta satysfakcja z <em>„Działa!”</em> napędza mnie każdego dnia.
+                    Po 14 latach w chmurze prywatnej — czas wznieść się wyżej.”</p>
+                <cite>— Dlaczego IT? Dlaczego AWS?</cite>
+            </div>
+
         </div>
-        <div class="stack-card">
-          <div class="icon">⚡</div>
-          <h3>CloudFront</h3>
-          <p>Global CDN · HTTPS · PriceClass_100 · Auto-invalidation</p>
-        </div>
-        <div class="stack-card">
-          <div class="icon">🔒</div>
-          <h3>OAC</h3>
-          <p>Origin Access Control · sigv4 signing · S3 bucket policy</p>
-        </div>
-        <div class="stack-card">
-          <div class="icon">🏗️</div>
-          <h3>Terraform</h3>
-          <p>IaC · hashicorp/aws ~6.0 · for_each · filemd5 tracking</p>
-        </div>
-      </div>
     </section>
 
-    <section class="section">
-      <div class="section-label">// Key Terraform snippet</div>
-      <div class="code-block">
-        <span class="comment"># Auto-detect file changes + invalidate cache</span><br>
-        <span class="kw">resource</span> <span class="str">"terraform_data"</span> <span class="str">"post_object_update"</span> {<br>
-        &nbsp;&nbsp;input = <span class="kw">sha1</span>(<span class="kw">join</span>(<span class="str">","</span>, [<br>
-        &nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">for</span> f <span class="kw">in</span> <span class="kw">fileset</span>(<span class="str">"website/"</span>, <span class="str">"**"</span>) : <span class="kw">filemd5</span>(<span class="str">"website/${f}"</span>)<br>
-        &nbsp;&nbsp;]))<br>
-        &nbsp;&nbsp;<span class="kw">lifecycle</span> {<br>
-        &nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">action_trigger</span> {<br>
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;events  = [before_create, before_update]<br>
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;actions = [<span class="kw">action</span>.aws_cloudfront_create_invalidation.post_object_update]<br>
-        &nbsp;&nbsp;&nbsp;&nbsp;}<br>
-        &nbsp;&nbsp;}<br>
-        }
-      </div>
+    <section id="skills">
+        <div class="container">
+            <div class="section-header fade-in">
+                <span class="section-label">⚙️ Stack</span>
+                <h2 class="section-title">Umiejętności i technologie</h2>
+                <div class="section-divider"></div>
+            </div>
+
+            <div class="skills-grid">
+
+                <div class="skill-card fade-in">
+                    <div class="skill-card-icon">☁️</div>
+                    <p class="skill-card-title">AWS — w praktyce</p>
+                    <div class="skill-tags">
+                        <span class="skill-tag highlight">Lambda</span>
+                        <span class="skill-tag highlight">DynamoDB</span>
+                        <span class="skill-tag highlight">API Gateway</span>
+                        <span class="skill-tag highlight">Step Functions</span>
+                        <span class="skill-tag highlight">EventBridge</span>
+                        <span class="skill-tag highlight">SES</span>
+                        <span class="skill-tag highlight">SNS</span>
+                        <span class="skill-tag highlight">SSM</span>
+                        <span class="skill-tag highlight">CloudFront</span>
+                        <span class="skill-tag highlight">S3</span>
+                        <span class="skill-tag">EC2</span>
+                        <span class="skill-tag">IAM / OIDC</span>
+                        <span class="skill-tag">CloudWatch</span>
+                    </div>
+                </div>
+
+                <div class="skill-card fade-in">
+                    <div class="skill-card-icon">🛠️</div>
+                    <p class="skill-card-title">IaC & DevOps</p>
+                    <div class="skill-tags">
+                        <span class="skill-tag highlight">Terraform</span>
+                        <span class="skill-tag highlight">Workspaces</span>
+                        <span class="skill-tag highlight">GitHub Actions</span>
+                        <span class="skill-tag highlight">CI/CD</span>
+                        <span class="skill-tag">OIDC</span>
+                        <span class="skill-tag">Git</span>
+                        <span class="skill-tag">Bash</span>
+                    </div>
+                </div>
+
+                <div class="skill-card fade-in">
+                    <div class="skill-card-icon">🐍</div>
+                    <p class="skill-card-title">Python — buduję</p>
+                    <div class="skill-tags">
+                        <span class="skill-tag highlight">boto3</span>
+                        <span class="skill-tag highlight">Lambda runtime</span>
+                        <span class="skill-tag highlight">Anthropic SDK</span>
+                        <span class="skill-tag highlight">requests</span>
+                        <span class="skill-tag">pandas</span>
+                        <span class="skill-tag">OOP</span>
+                        <span class="skill-tag">SPARQL</span>
+                    </div>
+                </div>
+
+                <div class="skill-card fade-in">
+                    <div class="skill-card-icon">🖥️</div>
+                    <p class="skill-card-title">VMware — ekspertka</p>
+                    <div class="skill-tags">
+                        <span class="skill-tag highlight">vSphere</span>
+                        <span class="skill-tag highlight">vRO</span>
+                        <span class="skill-tag highlight">vRA</span>
+                        <span class="skill-tag highlight">vSAN</span>
+                        <span class="skill-tag">Dell VBlock</span>
+                        <span class="skill-tag">RCM Upgrades</span>
+                        <span class="skill-tag">vDS</span>
+                        <span class="skill-tag">DRS/HA</span>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <section id="certs" class="certs">
+        <div class="container">
+            <div class="section-header fade-in">
+                <span class="section-label">📜 Kolejne poziomy</span>
+                <h2 class="section-title">Certyfikaty</h2>
+                <div class="section-divider"></div>
+            </div>
+
+            <div class="certs-grid">
+
+                <div class="cert-card highlight fade-in">
+                    <div class="cert-icon">🟠</div>
+                    <div>
+                        <p class="cert-name">AWS Certified Solutions Architect – Associate</p>
+                        <p class="cert-vendor">Amazon Web Services · SAA-C03 · kwiecień 2026 · wynik 809/1000</p>
+                        <span class="cert-badge">ZDANY</span>
+                    </div>
+                </div>
+
+                <div class="cert-card fade-in">
+                    <div class="cert-icon">🔵</div>
+                    <div>
+                        <p class="cert-name">VCAP6-DCV Deploy</p>
+                        <p class="cert-vendor">VMware Certified Advanced Professional 6 – Data Center Virtualization Deployment</p>
+                    </div>
+                </div>
+
+                <div class="cert-card fade-in">
+                    <div class="cert-icon">🔵</div>
+                    <div>
+                        <p class="cert-name">VCP6-DCV</p>
+                        <p class="cert-vendor">VMware Certified Professional 6 – Data Center Virtualization</p>
+                    </div>
+                </div>
+
+                <div class="cert-card fade-in">
+                    <div class="cert-icon">🔵</div>
+                    <div>
+                        <p class="cert-name">VCP7-CMA</p>
+                        <p class="cert-vendor">VMware Certified Professional 7 – Cloud Management and Automation</p>
+                    </div>
+                </div>
+
+                <div class="cert-card fade-in">
+                    <div class="cert-icon">🔵</div>
+                    <div>
+                        <p class="cert-name">VCP6-DTM</p>
+                        <p class="cert-vendor">VMware Certified Professional 6 – Desktop and Mobility</p>
+                    </div>
+                </div>
+
+                <div class="cert-card fade-in">
+                    <div class="cert-icon">🔵</div>
+                    <div>
+                        <p class="cert-name">VCP5-DCV · VCP-Cloud · VCP6-DT · VCA-DCV</p>
+                        <p class="cert-vendor">VMware Certified Professional Portfolio</p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <section id="projects">
+        <div class="container">
+            <div class="section-header fade-in">
+                <span class="section-label">🚀 Wdrożone w chmurze</span>
+                <h2 class="section-title">Projekty</h2>
+                <div class="section-divider"></div>
+            </div>
+
+            <div class="projects-grid">
+
+                <div class="project-card featured fade-in">
+                    <span class="project-status featured">★ MOJA FIRMA · DZIAŁA</span>
+                    <h3 class="project-title">🌿 IntegraHolistic — aplikacja dla gabinetów holistycznych</h3>
+                    <p class="project-desc">
+                        Produkcyjna aplikacja SaaS dla gabinetów kosmetologii i trychologii holistycznej, współtworzona
+                        z praktykującą kosmetolożką. Kartoteka i wywiad, generator Planu Holistycznego Działania, zgody
+                        podpisywane na tablecie, pakiety zabiegów, grafik zespołu, utarg i prowizje, dyktowanie notatek.
+                        Dane o zdrowiu (RODO art. 9): osobne konto produkcyjne w organizacji AWS z politykami SCP,
+                        Identity Center z MFA, szyfrowanie KMS, WAF, dane wyłącznie w UE i codzienny raport bezpieczeństwa.
+                    </p>
+                    <div class="project-tech">
+                        <span>Lambda</span>
+                        <span>API Gateway</span>
+                        <span>DynamoDB</span>
+                        <span>Cognito MFA</span>
+                        <span>KMS</span>
+                        <span>CloudFront</span>
+                        <span>WAF</span>
+                        <span>Route 53</span>
+                        <span>SES</span>
+                        <span>Bedrock</span>
+                        <span>Transcribe</span>
+                        <span>Organizations · SCP</span>
+                        <span>Terraform</span>
+                        <span>GitHub Actions</span>
+                        <span>React</span>
+                        <span>Python</span>
+                    </div>
+                    <div class="project-links">
+                        <a href="https://www.integraholistic.pl" target="_blank" rel="noopener" class="project-link primary">→ integraholistic.pl</a>
+                        <a href="https://www.integraholistic.pl/#film" target="_blank" rel="noopener" class="project-link">→ film (100 s)</a>
+                    </div>
+                </div>
+
+                <div class="project-card fade-in">
+                    <span class="project-status live">✓ MOJA FIRMA · DZIAŁA</span>
+                    <h3 class="project-title">🧠 MindData — aplikacja dla gabinetów psychologicznych</h3>
+                    <p class="project-desc">
+                        Bezpieczna aplikacja dla psychologów i psychoterapeutów: notatki z sesji, które po podpisaniu stają się
+                        niezmienne, cyfrowe zgody RODO z pełną historią, kalendarz wizyt (stacjonarnych i online)
+                        oraz asystent AI, który porządkuje notatki z brudnopisu. Szyfrowanie AES-256, MFA, dziennik
+                        audytowy, dane w UE (Frankfurt).
+                    </p>
+                    <div class="project-tech">
+                        <span>AWS Serverless</span>
+                        <span>Cognito MFA</span>
+                        <span>KMS</span>
+                        <span>Bedrock</span>
+                        <span>React</span>
+                        <span>Terraform</span>
+                    </div>
+                    <div class="project-links">
+                        <a href="https://www.minddata.pl" target="_blank" rel="noopener" class="project-link primary">→ minddata.pl</a>
+                    </div>
+                </div>
+
+                <div class="project-card fade-in">
+                    <span class="project-status live">✓ DZIAŁA</span>
+                    <h3 class="project-title">🌱 Plant Inventory App — serverless na AWS</h3>
+                    <p class="project-desc">
+                        Produkcyjna aplikacja serverless do planów pielęgnacji ogrodu. Step Functions steruje
+                        11 funkcjami Lambda, które z pomocą Anthropic Claude AI układają roczny kalendarz pielęgnacji,
+                        co miesiąc weryfikują go z prognozą pogody (OpenWeatherMap) i wysyłają propozycje mailem przez SES.
+                        Baza ~1800 gatunków roślin zaimportowana z Wikidata (SPARQL). Front na S3 + CloudFront z HTTPS,
+                        całość w Terraform Workspaces, CI/CD bez kluczy przez GitHub Actions + OIDC.
+                    </p>
+                    <div class="project-tech">
+                        <span>Lambda</span>
+                        <span>DynamoDB</span>
+                        <span>Step Functions</span>
+                        <span>API Gateway</span>
+                        <span>EventBridge</span>
+                        <span>SES</span>
+                        <span>SSM</span>
+                        <span>CloudFront</span>
+                        <span>S3</span>
+                        <span>Terraform</span>
+                        <span>GitHub Actions</span>
+                        <span>Claude AI</span>
+                        <span>Python</span>
+                    </div>
+                    <div class="project-links">
+                        <a href="https://d1izq5f0ackn63.cloudfront.net" target="_blank" rel="noopener" class="project-link primary">→ Wersja demo</a>
+                        <a href="https://github.com/jolanta-kowalewska/plant-inventory-app" target="_blank" rel="noopener" class="project-link">→ GitHub</a>
+                    </div>
+                </div>
+
+                <div class="project-card fade-in">
+                    <span class="project-status live">✓ DZIAŁA</span>
+                    <h3 class="project-title">AWS EC2 Manager</h3>
+                    <p class="project-desc">
+                        Narzędzie CLI w Pythonie do zarządzania instancjami EC2 — wyświetlanie, start, stop, restart i usuwanie
+                        wybranych instancji. Dziennik audytowy w S3 z tożsamością wywołującego (AWS STS).
+                        Programowanie obiektowe, obsługa błędów i codzienna rotacja logów.
+                    </p>
+                    <div class="project-tech">
+                        <span>Python</span>
+                        <span>boto3</span>
+                        <span>EC2</span>
+                        <span>S3</span>
+                        <span>IAM</span>
+                        <span>STS</span>
+                    </div>
+                    <div class="project-links">
+                        <a href="https://github.com/jolanta-kowalewska/aws_EC2_manager" target="_blank" rel="noopener" class="project-link">→ GitHub</a>
+                    </div>
+                </div>
+
+                <div class="project-card fade-in">
+                    <span class="project-status live">✓ DZIAŁA</span>
+                    <h3 class="project-title">Currency Converter AWS + Pandas</h3>
+                    <p class="project-desc">
+                        Przelicznik walut z bieżącymi kursami z API, historią przeliczeń w S3 i raportami
+                        analitycznymi w Pandas. Interfejs z menu, wykrywanie duplikatów i zarządzanie plikami w S3.
+                    </p>
+                    <div class="project-tech">
+                        <span>Python</span>
+                        <span>boto3</span>
+                        <span>pandas</span>
+                        <span>S3</span>
+                        <span>requests</span>
+                    </div>
+                    <div class="project-links">
+                        <a href="https://github.com/jolanta-kowalewska/currency-converter-aws-pandas" target="_blank" rel="noopener" class="project-link">→ GitHub</a>
+                    </div>
+                </div>
+
+                <div class="project-card fade-in">
+                    <span class="project-status live">✓ DZIAŁA</span>
+                    <h3 class="project-title">AWS Health Checker</h3>
+                    <p class="project-desc">
+                        Narzędzie CLI w Pythonie, które odpytuje infrastrukturę AWS i zapisuje raport stanu (JSON) w S3:
+                        instancje EC2 i ich stany, rozmiary bucketów S3 z CloudWatch, użytkownicy IAM z ostatnim
+                        logowaniem oraz typy i stany load balancerów ELB.
+                    </p>
+                    <div class="project-tech">
+                        <span>Python</span>
+                        <span>boto3</span>
+                        <span>EC2</span>
+                        <span>S3</span>
+                        <span>IAM</span>
+                        <span>ELB</span>
+                    </div>
+                    <div class="project-links">
+                        <a href="https://github.com/jolanta-kowalewska/AWS-SimpleHealthCheckTool" target="_blank" rel="noopener" class="project-link">→ GitHub</a>
+                    </div>
+                </div>
+
+                <div class="project-card fade-in">
+                    <span class="project-status live">✓ DZIAŁA</span>
+                    <h3 class="project-title">EC2 On-Demand Price Comparator</h3>
+                    <p class="project-desc">
+                        Narzędzie CLI w Pythonie porównujące ceny EC2 On-Demand między regionami AWS (AWS Pricing API).
+                        Wskazuje najtańszy region dla danego typu instancji i systemu, z kosztem licencji systemu.
+                    </p>
+                    <div class="project-tech">
+                        <span>Python</span>
+                        <span>boto3</span>
+                        <span>AWS Pricing API</span>
+                    </div>
+                    <div class="project-links">
+                        <a href="https://github.com/jolanta-kowalewska/ec2-price-comparator" target="_blank" rel="noopener" class="project-link">→ GitHub</a>
+                    </div>
+                </div>
+
+                <div class="project-card fade-in">
+                    <span class="project-status wip">⚡ NASTĘPNY KROK</span>
+                    <h3 class="project-title">Containers + EKS Deep Dive</h3>
+                    <p class="project-desc">
+                        Następny projekt do nauki — aplikacja w kontenerach na Amazon EKS, Terraform z modułami
+                        i przygotowanie do CKA. Praktyka z Kubernetesem jako uzupełnienie serverless.
+                    </p>
+                    <div class="project-tech">
+                        <span>EKS</span>
+                        <span>Docker</span>
+                        <span>Kubernetes</span>
+                        <span>Terraform</span>
+                        <span>Helm</span>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <section id="contact" class="contact">
+        <div class="container">
+            <div class="section-header fade-in">
+                <span class="section-label">📡 Bądźmy w kontakcie</span>
+                <h2 class="section-title">Kontakt</h2>
+                <div class="section-divider center"></div>
+            </div>
+
+            <p class="contact-intro fade-in">
+                Prowadzisz gabinet i chcesz zobaczyć IntegraHolistic na swoich produktach i zabiegach?
+                Albo budujesz coś na AWS i potrzebujesz kogoś, kto zna i teorię, i codzienną praktykę
+                utrzymania? Porozmawiajmy.
+            </p>
+
+            <div class="contact-links fade-in">
+                <a href="https://www.linkedin.com/in/jolanta-kowalewska-b1281799" target="_blank" rel="noopener" class="contact-link">
+                    <span class="contact-link-icon">💼</span>
+                    LinkedIn
+                </a>
+                <a href="https://github.com/jolanta-kowalewska" target="_blank" rel="noopener" class="contact-link">
+                    <span class="contact-link-icon">💻</span>
+                    GitHub
+                </a>
+                <a href="mailto:kontakt@kowalewskasoftware.pl" class="contact-link">
+                    <span class="contact-link-icon">✉️</span>
+                    Email
+                </a>
+            </div>
+
+            <div class="fade-in">
+                <span class="open-to-work">Kowalewska Software</span>
+                <span class="company-id">NIP PL6652851454</span>
+            </div>
+        </div>
     </section>
 
     <footer>
-      <span>phoenixcloud-portfolio-dev · eu-central-1 · AWS Free Tier</span>
-      <span>Built by <a href="#">Jola Kowalewska</a> · Cloud Engineer in progress 🚀</span>
+        <p>Zbudowała <span>Jola Kowalewska</span> · Hosting: <span>AWS S3 + CloudFront</span> · 2026</p>
     </footer>
-
-  </div>
 </body>
 </html>
