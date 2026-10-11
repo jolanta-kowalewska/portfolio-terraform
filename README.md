@@ -35,7 +35,6 @@ website/                         the site (PL at /, EN at /en/)
 tools/buduj_strone.py            builds both language versions
 .github/workflows/infra.yml      terraform plan on push, apply on manual dispatch
 .github/workflows/strona.yml     publishes website/ and invalidates the CDN
-legacy-dev/                      previous version (CloudFront default domain), kept until decommissioned
 ```
 
 ## Deploy
