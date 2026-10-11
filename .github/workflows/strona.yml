@@ -1,0 +1,64 @@
+name: Publikacja strony
+
+# Wgrywa website/ do bucketu strony i czyści cache CloudFront. Infrastruktura
+# (bucket, dystrybucja) musi już istnieć — zakłada ją infra.yml.
+
+on:
+  push:
+    branches: [main]
+    paths: ["website/**", ".github/workflows/strona.yml"]
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+concurrency:
+  group: strona-prod
+  cancel-in-progress: false
+
+env:
+  BUCKET: kowalewskasoftware-www-298712672271
+
+jobs:
+  publikacja:
+    runs-on: ubuntu-latest
+    environment: prod
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: eu-central-1
+
+      # Trzy przebiegi, bo każda grupa plików ma inny czas życia w cache:
+      #   fonty   — nie zmieniają się nigdy → rok, immutable
+      #   CSS/JS/zdjęcie — nazwy bez wersji → godzina (plus inwalidacja niżej)
+      #   HTML    — zawsze świeży, żeby zmiana treści była widoczna od razu
+      - name: Fonty
+        run: >
+          aws s3 sync website/assets/fonts "s3://$BUCKET/assets/fonts"
+          --cache-control "public, max-age=31536000, immutable"
+
+      - name: Pozostałe pliki (bez HTML)
+        run: >
+          aws s3 sync website "s3://$BUCKET"
+          --exclude "*.html" --exclude "assets/fonts/*"
+          --cache-control "public, max-age=3600"
+
+      - name: HTML
+        run: >
+          aws s3 sync website "s3://$BUCKET"
+          --exclude "*" --include "*.html"
+          --cache-control "public, max-age=0, must-revalidate"
+
+      - name: Usunięcie plików, których nie ma już w repo
+        run: aws s3 sync website "s3://$BUCKET" --delete --size-only
+
+      - name: Inwalidacja CloudFront
+        run: |
+          ID=$(aws cloudfront list-distributions \
+            --query "DistributionList.Items[?Comment=='kowalewskasoftware.pl'].Id | [0]" --output text)
+          test -n "$ID" && test "$ID" != "None"
+          aws cloudfront create-invalidation --distribution-id "$ID" --paths "/*" --query Invalidation.Id --output text

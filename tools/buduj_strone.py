@@ -109,8 +109,8 @@ en = rep(en, """<div class="project-card featured fade-in">
                         <span>Python</span>
                     </div>
                     <div class="project-links">
-                        <a href="https://integraholistic.pl" target="_blank" rel="noopener" class="project-link primary">→ integraholistic.pl</a>
-                        <a href="https://integraholistic.pl/#film" target="_blank" rel="noopener" class="project-link">→ 100-second film</a>
+                        <a href="https://www.integraholistic.pl" target="_blank" rel="noopener" class="project-link primary">→ integraholistic.pl</a>
+                        <a href="https://www.integraholistic.pl/#film" target="_blank" rel="noopener" class="project-link">→ 100-second film</a>
                     </div>
                 </div>
 

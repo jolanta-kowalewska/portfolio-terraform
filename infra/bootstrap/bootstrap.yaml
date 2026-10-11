@@ -1,0 +1,132 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: >
+  Bootstrap konta Kowalewska Software WWW (298712672271) - jednorazowo, przed pierwszym
+  terraform apply. Zaklada to, czego Terraform nie moze zalozyc sam sobie: bucket na stan
+  oraz role OIDC dla GitHub Actions. Wszystko inne (DNS, certyfikat, CloudFront, S3 strony)
+  zyje w Terraformie w katalogu infra/.
+
+  Dlaczego CloudFormation, a nie Terraform: Terraform nie uruchamia sie na laptopie
+  (Windows Application Control), wiec pierwszy apply i tak musi isc przez GitHub Actions -
+  a to wymaga roli, ktora juz istnieje. CloudFormation zaklada ja jednym poleceniem AWS CLI.
+
+  Wdrozenie (profil SSO z uprawnieniami admina):
+    aws cloudformation deploy --profile ks-www --region eu-central-1 \
+      --stack-name kowalewskasoftware-www-bootstrap \
+      --template-file infra/bootstrap/bootstrap.yaml \
+      --capabilities CAPABILITY_NAMED_IAM
+
+Parameters:
+  GithubRepo:
+    Type: String
+    Default: jolanta-kowalewska/portfolio-terraform
+  GithubEnvironment:
+    Type: String
+    Default: prod
+    Description: >
+      Rola da sie przejac WYLACZNIE z joba z `environment: prod`. Repo jest publiczne,
+      wiec warunek na environment (a nie na galaz) jest tu kluczowy: PR z forka nie
+      dostaje tokenu dla environmentu.
+
+Resources:
+  StateBucket:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      BucketName: !Sub "kowalewskasoftware-www-tfstate-${AWS::AccountId}"
+      VersioningConfiguration:
+        Status: Enabled
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      OwnershipControls:
+        Rules:
+          - ObjectOwnership: BucketOwnerEnforced
+      LifecycleConfiguration:
+        Rules:
+          - Id: stare-wersje-stanu
+            Status: Enabled
+            NoncurrentVersionExpiration:
+              NoncurrentDays: 90
+
+  StateBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref StateBucket
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: TylkoTLS
+            Effect: Deny
+            Principal: "*"
+            Action: "s3:*"
+            Resource:
+              - !GetAtt StateBucket.Arn
+              - !Sub "${StateBucket.Arn}/*"
+            Condition:
+              Bool:
+                aws:SecureTransport: "false"
+
+  GithubOidc:
+    Type: AWS::IAM::OIDCProvider
+    Properties:
+      Url: https://token.actions.githubusercontent.com
+      ClientIdList:
+        - sts.amazonaws.com
+
+  DeployRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: kowalewskasoftware-www-github-actions
+      Description: Terraform apply + publikacja strony z GitHub Actions (OIDC)
+      MaxSessionDuration: 3600
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Federated: !Ref GithubOidc
+            Action: sts:AssumeRoleWithWebIdentity
+            Condition:
+              StringEquals:
+                token.actions.githubusercontent.com:aud: sts.amazonaws.com
+                token.actions.githubusercontent.com:sub: !Sub "repo:${GithubRepo}:environment:${GithubEnvironment}"
+      Policies:
+        - PolicyName: strona-i-dns
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              # Swiadomie bez iam:* - rola nie moze dac sobie wiecej uprawnien ani
+              # zalozyc nowych tozsamosci. Zmiana samej roli = zmiana tego szablonu.
+              - Sid: UslugiStrony
+                Effect: Allow
+                Action:
+                  - s3:*
+                  - cloudfront:*
+                  - route53:*
+                  - acm:*
+                  - budgets:*
+                  - sts:GetCallerIdentity
+                Resource: "*"
+              - Sid: NieRuszajStanuInaczejNizTerraform
+                Effect: Deny
+                Action:
+                  - s3:DeleteBucket
+                  - s3:PutBucketPolicy
+                  - s3:DeleteBucketPolicy
+                  - s3:PutBucketVersioning
+                  - s3:PutLifecycleConfiguration
+                Resource: !GetAtt StateBucket.Arn
+
+Outputs:
+  StateBucketName:
+    Value: !Ref StateBucket
+  DeployRoleArn:
+    Description: Wpisac jako zmienna AWS_DEPLOY_ROLE_ARN w GitHub environment `prod`
+    Value: !GetAtt DeployRole.Arn
