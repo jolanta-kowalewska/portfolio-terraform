@@ -77,6 +77,21 @@ curl.exe -sI https://kowalewskasoftware.pl --resolve "kowalewskasoftware.pl:443:
 
 MX/SPF/DKIM/DMARC muszą być **identyczne** z OVH (DKIM: po sklejeniu ciągów).
 
+## Krok 5b — wyłączenie DNSSEC w OVH (PRZED zmianą NS!)
+
+OVH domyślnie podpisuje strefę (DNSSEC) i trzyma rekord **DS w rejestrze `.pl`**.
+Zmiana NS przy żywym DS = resolvery walidujące (Google, Cloudflare, większość ISP)
+odrzucają niepodpisane odpowiedzi Route 53 → **domena i poczta znikają** (SERVFAIL).
+
+1. OVH → Domeny → kowalewskasoftware.pl → Informacje ogólne → Bezpieczeństwo →
+   „Zabezpieczenie DNS (DNSSEC)” → wyłącz.
+2. Czekaj, aż DS zniknie z serwerów rejestru (źródło prawdy, nie cache):
+   `Resolve-DnsName kowalewskasoftware.pl -Type DS -Server a-dns.pl -DnsOnly`
+3. Potem odczekaj **TTL starego DS (21600 s = 6 h)** — tyle resolwery mogą go jeszcze pamiętać.
+4. Dopiero wtedy krok 6.
+
+Stan z 2026-10-11: DS keytag 12232, algorytm 8, TTL 21600.
+
 ## Krok 6 — zmiana NS w OVH
 
 OVH → Domeny → kowalewskasoftware.pl → **Serwery DNS** → „Zmień serwery DNS” →
@@ -93,4 +108,5 @@ Strefa OVH zostaje nietknięta do końca propagacji — dlatego wycofanie dział
 - Google Workspace Admin → Aplikacje → Gmail → Uwierzytelnianie: DKIM „Uwierzytelnianie e-maili”.
 - `https://kowalewskasoftware.pl`, `https://www…` (→ 301 na apex), `/en/`, `/nie-ma` (404).
 - Wyłączenie starej strony (`legacy-dev/`, konto dev 708037416948).
-- Później, osobno: DNSSEC (klucz KMS w us-east-1 + rekord DS w OVH).
+- Później, osobno: DNSSEC w Route 53 (klucz KMS w us-east-1, KSK, potem nowy DS w OVH).
+  Kolejność odwrotna niż przy wyłączaniu: najpierw podpisywanie w Route 53, DS na końcu.
