@@ -16,8 +16,8 @@ variable "certyfikat_gotowy" {
     certyfikatu — domena podpięta pod CloudFront i rekordy A/AAAA w strefie.
     NS w OVH przełączamy dopiero po etapie 2, więc strona działa od pierwszej sekundy.
   EOT
-  type    = bool
-  default = false
+  type        = bool
+  default     = false
 }
 
 variable "email_alertow" {

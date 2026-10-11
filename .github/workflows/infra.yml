@@ -2,9 +2,11 @@ name: Infra (plan / apply)
 
 # Terraform dla konta Kowalewska Software WWW (298712672271): DNS, certyfikat,
 # CloudFront, bucket strony. Push do main robi tylko plan; apply wyłącznie ręcznie,
-# z wpisanym „deploy”.
+# z wpisanym „deploy”. PR-y dostają tylko fmt + validate, bez dostępu do AWS.
 
 on:
+  pull_request:
+    paths: ["infra/**", ".github/workflows/infra.yml"]
   push:
     branches: [main]
     paths: ["infra/**", ".github/workflows/infra.yml"]
@@ -21,16 +23,36 @@ on:
         default: ""
 
 permissions:
-  id-token: write
   contents: read
 
-concurrency:
-  group: infra-prod
-  cancel-in-progress: false
-
 jobs:
-  terraform:
+  # Bez AWS i bez environmentu — działa też dla PR z forka (repo jest publiczne).
+  # -diff pokazuje dokładnie, czego chce fmt, bo lokalnie Terraform się nie uruchomi.
+  sprawdzenie:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: infra
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.14.9
+      - name: fmt
+        run: terraform fmt -check -recursive -diff
+      - name: validate
+        run: terraform init -input=false -backend=false && terraform validate
+
+  terraform:
+    if: github.event_name != 'pull_request'
+    needs: sprawdzenie
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    concurrency:
+      group: infra-prod
+      cancel-in-progress: false
     # Rola AWS ufa wyłącznie tokenom z environmentu `prod` (repo jest publiczne).
     environment: prod
     defaults:
