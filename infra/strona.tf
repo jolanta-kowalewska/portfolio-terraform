@@ -91,7 +91,7 @@ resource "aws_cloudfront_function" "adresy" {
   name    = "kowalewskasoftware-www-adresy"
   runtime = "cloudfront-js-2.0"
   publish = true
-  code = <<-JS
+  code    = <<-JS
     function handler(event) {
       var req = event.request;
       var host = req.headers.host ? req.headers.host.value : "";
