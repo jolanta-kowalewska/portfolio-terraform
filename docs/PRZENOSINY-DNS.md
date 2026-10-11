@@ -107,6 +107,6 @@ Strefa OVH zostaje nietknięta do końca propagacji — dlatego wycofanie dział
   w nagłówkach odebranego: `dkim=pass`, `spf=pass`, `dmarc=pass`.
 - Google Workspace Admin → Aplikacje → Gmail → Uwierzytelnianie: DKIM „Uwierzytelnianie e-maili”.
 - `https://kowalewskasoftware.pl`, `https://www…` (→ 301 na apex), `/en/`, `/nie-ma` (404).
-- Wyłączenie starej strony (`legacy-dev/`, konto dev 708037416948).
+- ✅ 2026-10-11: stara strona usunięta z konta dev 708037416948 (3 dystrybucje CloudFront: E1NUSLAP5UY0NP, E37JEBWVTYRWJM, ECYUSRA7S9OEM; buckety phoenixcloud-portfolio-dev i phoenixcloud-portfolio; stan portfolio/terraform.tfstate), sekret AWS_ROLE_ARN skasowany, repo wykreślone z zaufania terraform_role, katalog legacy-dev/ usunięty.
 - Później, osobno: DNSSEC w Route 53 (klucz KMS w us-east-1, KSK, potem nowy DS w OVH).
   Kolejność odwrotna niż przy wyłączaniu: najpierw podpisywanie w Route 53, DS na końcu.
