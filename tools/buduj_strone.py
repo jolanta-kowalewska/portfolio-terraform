@@ -110,7 +110,7 @@ en = rep(en, """<div class="project-card featured fade-in">
                     </div>
                     <div class="project-links">
                         <a href="https://www.integraholistic.pl" target="_blank" rel="noopener" class="project-link primary">→ integraholistic.pl</a>
-                        <a href="https://www.integraholistic.pl/#film" target="_blank" rel="noopener" class="project-link">→ 100-second film</a>
+                        <a href="https://www.integraholistic.pl/#film" target="_blank" rel="noopener" class="project-link">→ 80-second film</a>
                     </div>
                 </div>
 
@@ -266,7 +266,7 @@ PARY = [
                         podpisywane na tablecie, pakiety zabiegów, grafik zespołu, utarg i prowizje, dyktowanie notatek.
                         Dane o zdrowiu (RODO art. 9): osobne konto produkcyjne w organizacji AWS z politykami SCP,
                         Identity Center z MFA, szyfrowanie KMS, WAF, dane wyłącznie w UE i codzienny raport bezpieczeństwa."""),
-    ('class="project-link">→ 100-second film</a>', 'class="project-link">→ film (100 s)</a>'),
+    ('class="project-link">→ 80-second film</a>', 'class="project-link">→ film (80 s)</a>'),
     ('<span class="project-status live">✓ MY COMPANY · LIVE</span>', '<span class="project-status live">✓ MOJA FIRMA · DZIAŁA</span>'),
     ('<h3 class="project-title">🧠 MindData — for Psychology Practices</h3>', '<h3 class="project-title">🧠 MindData — aplikacja dla gabinetów psychologicznych</h3>'),
     ("""Secure web app for psychologists and psychotherapists: session notes that become immutable
