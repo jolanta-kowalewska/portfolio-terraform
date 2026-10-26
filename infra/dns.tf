@@ -50,13 +50,19 @@ resource "aws_route53_record" "dkim_google" {
   records = [join("\"\"", regexall(".{1,255}", local.dkim_google))]
 }
 
+# Pocztę z tej domeny wysyła wyłącznie Google Workspace (SPF + DKIM d=kowalewskasoftware.pl,
+# sprawdzone 2026-10-11), więc obca poczta podszywająca się pod domenę idzie do spamu.
+# Kolejny krok: p=reject, po kilku tygodniach czystych raportów rua.
 resource "aws_route53_record" "dmarc" {
   zone_id = aws_route53_zone.glowna.zone_id
   name    = "_dmarc.${var.domena}"
   type    = "TXT"
   ttl     = 3600
-  records = ["v=DMARC1; p=none; rua=mailto:dmarc@${var.domena}"]
+  records = ["v=DMARC1; p=quarantine; rua=mailto:dmarc@${var.domena}"]
 }
+
+# DNSSEC (klucz KMS, KSK, podpisywanie, alarmy) żyje poza Terraformem:
+# infra/dnssec/dnssec.yaml + docs/DNSSEC.md.
 
 # --- Kto może wystawiać certyfikaty --------------------------------------------
 # Tylko Amazon (ACM). Każdy inny urząd odmówi wystawienia certyfikatu dla tej domeny,

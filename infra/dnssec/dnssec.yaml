@@ -1,0 +1,143 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: >
+  DNSSEC dla strefy kowalewskasoftware.pl (konto WWW 298712672271). Region: us-east-1,
+  bo tego wymaga Route 53 dla klucza KMS podpisujacego strefe (KSK).
+
+  Dlaczego CloudFormation, a nie Terraform: rola GitHub Actions celowo nie ma uprawnien
+  KMS. Gdyby je miala, mogla by wylaczyc albo skasowac klucz - a klucz podpisujacy przy
+  opublikowanym DS w rejestrze .pl = SERVFAIL calej domeny, czyli tez poczty Google
+  Workspace ze skrzynkami root kont AWS. Ten stos wdraza sie recznie, profilem SSO.
+
+  Wdrozenie i kolejnosc krokow (DS w OVH dopiero po 48 h!): docs/DNSSEC.md
+
+Parameters:
+  HostedZoneId:
+    Type: String
+    Description: Id strefy kowalewskasoftware.pl w Route 53 (z Terraform, aws_route53_zone.glowna)
+  EmailAlertow:
+    Type: String
+    Default: aws-www-prod@kowalewskasoftware.pl
+
+Resources:
+  # Klucz asymetryczny ECC P-256 - jedyny typ, ktory Route 53 przyjmuje dla KSK.
+  # Retain: usuniecie stosu nie moze zabrac klucza, ktorym podpisana jest zywa strefa.
+  KluczKsk:
+    Type: AWS::KMS::Key
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      Description: KSK DNSSEC kowalewskasoftware.pl (Route 53). NIE wylaczac, NIE kasowac przy DS w rejestrze.
+      KeySpec: ECC_NIST_P256
+      KeyUsage: SIGN_VERIFY
+      KeyPolicy:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: AdministracjaKontem
+            Effect: Allow
+            Principal:
+              AWS: !Sub "arn:aws:iam::${AWS::AccountId}:root"
+            Action: "kms:*"
+            Resource: "*"
+          - Sid: Route53Dnssec
+            Effect: Allow
+            Principal:
+              Service: dnssec-route53.amazonaws.com
+            Action:
+              - kms:DescribeKey
+              - kms:GetPublicKey
+              - kms:Sign
+            Resource: "*"
+            Condition:
+              StringEquals:
+                aws:SourceAccount: !Ref AWS::AccountId
+              ArnLike:
+                aws:SourceArn: "arn:aws:route53:::hostedzone/*"
+          - Sid: Route53DnssecGrant
+            Effect: Allow
+            Principal:
+              Service: dnssec-route53.amazonaws.com
+            Action: kms:CreateGrant
+            Resource: "*"
+            Condition:
+              Bool:
+                kms:GrantIsForAWSResource: true
+          # Bezpiecznik: nikt (tez admin) nie wylaczy ani nie zaplanuje skasowania klucza
+          # jednym kliknieciem. Najpierw trzeba swiadomie zmienic te polityke - a wczesniej
+          # zdjac DS w OVH i odczekac (docs/DNSSEC.md, "Wycofanie").
+          - Sid: BezWylaczaniaIKasowania
+            Effect: Deny
+            Principal: "*"
+            Action:
+              - kms:DisableKey
+              - kms:ScheduleKeyDeletion
+            Resource: "*"
+
+  AliasKsk:
+    Type: AWS::KMS::Alias
+    Properties:
+      AliasName: alias/dnssec-kowalewskasoftware-pl
+      TargetKeyId: !Ref KluczKsk
+
+  Ksk:
+    Type: AWS::Route53::KeySigningKey
+    Properties:
+      HostedZoneId: !Ref HostedZoneId
+      KeyManagementServiceArn: !GetAtt KluczKsk.Arn
+      Name: ksk2026
+      Status: ACTIVE
+
+  Podpisywanie:
+    Type: AWS::Route53::DNSSEC
+    DependsOn: Ksk
+    Properties:
+      HostedZoneId: !Ref HostedZoneId
+
+  # --- Alarmy: Route 53 sam nie powie, ze podpisywanie przestalo dzialac -----------
+
+  TematAlertow:
+    Type: AWS::SNS::Topic
+    Properties:
+      TopicName: kowalewskasoftware-www-dnssec
+      Subscription:
+        - Protocol: email
+          Endpoint: !Ref EmailAlertow
+
+  AlarmBladPodpisywania:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: dnssec-kowalewskasoftware-pl-blad-podpisywania
+      AlarmDescription: Route 53 nie moze podpisac strefy (np. problem z kluczem KMS). Pilne - patrz docs/DNSSEC.md.
+      Namespace: AWS/Route53
+      MetricName: DNSSECInternalFailure
+      Dimensions:
+        - Name: HostedZoneId
+          Value: !Ref HostedZoneId
+      Statistic: Sum
+      Period: 3600
+      EvaluationPeriods: 1
+      Threshold: 0
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+      AlarmActions: [!Ref TematAlertow]
+
+  AlarmKluczWymagaUwagi:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: dnssec-kowalewskasoftware-pl-klucz-wymaga-uwagi
+      AlarmDescription: KSK w Route 53 wymaga dzialania (np. utracony dostep do klucza KMS). Pilne - patrz docs/DNSSEC.md.
+      Namespace: AWS/Route53
+      MetricName: DNSSECKeySigningKeysNeedingAction
+      Dimensions:
+        - Name: HostedZoneId
+          Value: !Ref HostedZoneId
+      Statistic: Sum
+      Period: 3600
+      EvaluationPeriods: 1
+      Threshold: 0
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+      AlarmActions: [!Ref TematAlertow]
+
+Outputs:
+  KluczKmsArn:
+    Value: !GetAtt KluczKsk.Arn
