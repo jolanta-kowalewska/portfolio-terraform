@@ -1,0 +1,105 @@
+/* Kowalewska Software — strona firmy stojącej za IntegraHolistic i MindData (10.2026).
+   Spokojna, biała strona z jednym akcentem (pomarańcz z dawnego „JK // CLOUD”).
+   Zwykły krój DM Sans, bez emotek i ozdobników. CSP: style tylko z tego pliku. */
+
+@font-face { font-family: "DM Sans"; font-weight: 400; font-display: swap;
+  src: url(/assets/fonts/dm-sans-latin-ext-400-normal.woff2) format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+@font-face { font-family: "DM Sans"; font-weight: 400; font-display: swap;
+  src: url(/assets/fonts/dm-sans-latin-400-normal.woff2) format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: "DM Sans"; font-weight: 500; font-display: swap;
+  src: url(/assets/fonts/dm-sans-latin-ext-500-normal.woff2) format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+@font-face { font-family: "DM Sans"; font-weight: 500; font-display: swap;
+  src: url(/assets/fonts/dm-sans-latin-500-normal.woff2) format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: "DM Sans"; font-weight: 700; font-display: swap;
+  src: url(/assets/fonts/dm-sans-latin-ext-700-normal.woff2) format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+@font-face { font-family: "DM Sans"; font-weight: 700; font-display: swap;
+  src: url(/assets/fonts/dm-sans-latin-700-normal.woff2) format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+
+:root {
+  --ink: #14202b; --ink-2: #46525d; --muted: #8a949c; --line: #e3e7ea;
+  --bg: #ffffff; --bg-2: #f6f7f8; --accent: #c25a1c; --ok: #2f7a4f; --wait: #8a6a16;
+}
+@media (prefers-color-scheme: dark) {
+  :root { --ink: #eef1f3; --ink-2: #b6bec5; --muted: #8d979f; --line: #2a333b;
+    --bg: #12181e; --bg-2: #182028; --accent: #e8874f; --ok: #6cc08f; --wait: #d7b25a; }
+}
+* { box-sizing: border-box; margin: 0; }
+html { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+body { font-family: "DM Sans", system-ui, sans-serif; color: var(--ink); background: var(--bg);
+  font-size: 17px; line-height: 1.6; -webkit-font-smoothing: antialiased; }
+a { color: inherit; }
+.w { max-width: 1180px; margin: 0 auto; padding: 0 32px; }
+
+.bar { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 22px 0; }
+.logo { font-weight: 700; font-size: 19px; letter-spacing: -.01em; text-decoration: none; }
+.logo span { color: var(--accent); }
+.nav { display: flex; gap: 24px; align-items: center; font-size: 15px; font-weight: 500; }
+.nav a { text-decoration: none; }
+.nav a:hover { color: var(--accent); }
+.nav .jezyk { border: 1px solid var(--line); border-radius: 6px; padding: 4px 9px; font-size: 13px; }
+
+.hero { display: grid; grid-template-columns: 1.15fr .85fr; gap: 56px; align-items: center; padding: 48px 0 72px; }
+.kto { font-weight: 500; color: var(--accent); font-size: 15px; }
+h1 { margin-top: 14px; font-size: 52px; line-height: 1.06; font-weight: 700; letter-spacing: -.03em; }
+.lede { margin-top: 22px; font-size: 19px; color: var(--ink-2); max-width: 32em; }
+.cta { margin-top: 30px; display: flex; gap: 12px; flex-wrap: wrap; }
+.btn { padding: 14px 22px; border-radius: 8px; font-weight: 700; text-decoration: none; font-size: 16px; }
+.b1 { background: var(--ink); color: var(--bg); }
+.b2 { border: 1.5px solid var(--line); }
+.btn:focus-visible, .nav a:focus-visible, .logo:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.foto { position: relative; }
+.foto img { display: block; width: 100%; height: auto; aspect-ratio: 4 / 5; object-fit: cover; object-position: 50% 30%;
+  border-radius: 14px; filter: grayscale(1); }
+.podpis { position: absolute; left: 18px; bottom: 18px; right: 18px; max-width: max-content; background: var(--bg);
+  padding: 12px 16px; border-radius: 10px; font-size: 14px; color: var(--ink-2); box-shadow: 0 10px 30px #0003; }
+.podpis b { display: block; font-size: 15px; color: var(--ink); }
+
+.sek { border-top: 1px solid var(--line); padding: 56px 0; scroll-margin-top: 16px; }
+h2 { font-size: 30px; font-weight: 700; letter-spacing: -.02em; margin-bottom: 24px; }
+.prod { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.karta { border: 1px solid var(--line); border-radius: 12px; padding: 26px; background: var(--bg); }
+.karta .st { font-size: 13px; font-weight: 700; color: var(--ok); }
+.karta .st.p { color: var(--wait); }
+.karta h3 { font-size: 22px; margin: 8px 0; }
+.karta p { color: var(--ink-2); }
+.karta a { display: inline-block; margin-top: 14px; color: var(--accent); font-weight: 700; text-decoration: none; }
+.karta a:hover { text-decoration: underline; }
+
+.bezp { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; }
+.bezp b { display: block; font-size: 17px; margin-bottom: 6px; }
+.bezp p { color: var(--ink-2); font-size: 15px; }
+
+.osoba { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; }
+.osoba p { color: var(--ink-2); margin-bottom: 14px; }
+.osoba .cert b { color: var(--ink); }
+.os { list-style: none; padding: 0; margin: 0; border-left: 2px solid var(--line); }
+.os li { padding: 0 0 18px 20px; position: relative; }
+.os li::before { content: ""; position: absolute; left: -6px; top: 7px; width: 10px; height: 10px; border-radius: 50%; background: var(--accent); }
+.os .lata { font-size: 13px; font-weight: 700; color: var(--muted); }
+.os b { display: block; font-size: 16px; margin: 2px 0; }
+.os span:not(.lata) { color: var(--ink-2); font-size: 15px; }
+
+.dane { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; font-size: 15px; color: var(--ink-2); }
+.dane b { color: var(--ink); display: block; }
+.dane a { color: var(--accent); }
+
+.stopka { border-top: 1px solid var(--line); padding: 28px 0 40px; font-size: 13px; color: var(--muted);
+  display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; }
+
+/* 404 */
+.nie-ma { min-height: 70vh; display: flex; flex-direction: column; justify-content: center; gap: 18px; }
+
+@media (max-width: 860px) {
+  .hero, .prod, .bezp, .osoba, .dane { grid-template-columns: 1fr; }
+  h1 { font-size: 36px; }
+  .hero { gap: 36px; padding-top: 24px; }
+  .nav a:not(.jezyk) { display: none; }
+  .w { padding: 0 20px; }
+}
